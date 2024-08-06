@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma carte</title>
+    <!-- Load Leaflet from CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+    <!-- Load Esri Leaflet from CDN -->
+    <script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js"></script>
+    <script src="https://unpkg.com/esri-leaflet-vector@4.2.3/dist/esri-leaflet-vector.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/esri-leaflet-renderers@2.0.6"></script>
+    <!--pour se connercter au API du easy button-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
+    <!--pour connecter Font Awesome-->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
+        integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu" crossorigin="anonymous">
+    <div id="requete" class="leaflet-bar">
+        <label>
+            <!--Permet de mettre le choix d'activité-->
+            Choisir une activité :
+            <select id="Activité" onchange="Isole()">
+                <option value="All">Toutes les activités</option>
+                <option value="Hike">Randonnée</option>
+                <option value="MTB">Vélo de montagne</option>
+                <option value="Kayak">Kayak/paddle</option>
+            </select>
+        </label>
+        <label>
+            <!--Permet de mettre le choix du statue de visite-->
+            Statue de visite :
+            <select id="Lieu" onchange="Isole()">
+                <option value="all">Tous</option>
+                <option value="visited">Déjà visité</option>
+                <option value="notVisited">Je veux y aller</option>
+            </select>
+        </label>
+    </div>
+    <div id="titreCarte">Carte Interactive des Activités de Plein Air au Québec</div>
+    <div id="carte"></div>
+    <div id="nom">Philippe Aubichon, 2024</div>
+    <!--Pour mettre une légende-->
+    <div id="legend"><h4>Légende</h4>
+        <p><span style="background-color: #800080; 
+                        display: inline-block; 
+                        width: 20px; 
+                        height: 2px; 
+                        margin-right: 5px;">
+    </span>Pistes cyclables</p></div>
+    <script>
+        const apiKey = "AAPK477993684cc543ba92ac496016d06b5aR8q2tWdVt6948CMToqEkewGVaC8bi94DA-Q511MVkbbA-77Wi9EHQiCjBYiC-x7W";
+        const basemapEnum = "ArcGIS:Topographic"
+        const layer = L.esri.Vector.vectorBasemapLayer(basemapEnum, { apiKey: apiKey });
+        const map = L.map('carte', {
+            center: [46.344177, -72.579267]
+        });
+        map.setView([46.344177, -72.579267], 12); // latitude, longitude, zoom level
+        layer.addTo(map);
+
+        // Création des différents fonds de carte
+        let gray = L.esri.basemapLayer('Gray');
+        let streets = L.esri.basemapLayer('Streets');
+        let imagery = L.esri.basemapLayer('Imagery');
+
+        // Ajouter les fonds de carte à la sélection
+        let fondCarte = {
+            'Fond gris': gray,
+            'Rues': streets,
+            'Satellite': imagery
+        };
+        L.control.layers(fondCarte).addTo(map);
+
+        // Pour ajouter une couche de service pour les pistes cyclables
+        let urlFL = 'https://services3.arcgis.com/F77upWE9kmPKRMqm/arcgis/rest/services/Pistecyclableetparc/FeatureServer/0'
+        L.esri.featureLayer({
+            url: urlFL
+        }).addTo(map);
+
+        // Groupes de couches pour chaque activité et statue de visite
+        const hikeVisitedMarkers = L.layerGroup();
+        const hikeNotVisitedMarkers = L.layerGroup();
+        const mtbVisitedMarkers = L.layerGroup();
+        const mtbNotVisitedMarkers = L.layerGroup();
+        const kayakVisitedMarkers = L.layerGroup();
+        const kayakNotVisitedMarkers = L.layerGroup();
+
+        //Pour permettre de changer les icons dans le fichier CSS
+        const hikeVisitedIcon = L.divIcon({
+            className: 'hike-VisitedIcon',
+            iconSize: [25, 25],  // Width, Height
+            iconAnchor: [10, 10]
+        });
+        const hikeNotVisitedIcon = L.divIcon({
+            className: 'hike-NotVisitedIcon',
+            iconSize: [25, 25],  // Width, Height
+            iconAnchor: [10, 10]
+        });
+        const mtbVisitedIcon = L.divIcon({
+            className: 'mtb-VisitedIcon',
+            iconSize: [25, 25],  // Width, Height
+            iconAnchor: [10, 10]
+        });
+        const mtbNotVisitedIcon = L.divIcon({
+            className: 'mtb-NotVisitedIcon',
+            iconSize: [25, 25],  // Width, Height
+            iconAnchor: [10, 10]
+        });
+        const kayakVisitedIcon = L.divIcon({
+            className: 'kayak-VisitedIcon',
+            iconSize: [25, 25],  // Width, Height
+            iconAnchor: [10, 10]
+        });
+        const kayakNotVisitedIcon = L.divIcon({
+            className: 'kayak-NotVisitedIcon',
+            iconSize: [25, 25],  // Width, Height
+            iconAnchor: [10, 10]
+        });
+
+        // Ajout des marqueurs pour chaque activité
+        //Hike fait
+        L.marker([46.300380, -72.584833], { icon: hikeVisitedIcon }).bindPopup('Randonnées près du Saint-Laurent<br><a href="https://maps.app.goo.gl/vraSMSjVMhW9A5pK7" target="_blank">Google Maps</a>').addTo(hikeVisitedMarkers);
+        L.marker([46.54508593622775, -72.39777207159815], { icon: hikeVisitedIcon }).bindPopup('<a href="https://parcbatiscan.ca/activites/activites-autonomes/" target="_blank">Parc de la rivière batiscan ($)</a><br><a href="https://maps.app.goo.gl/VnE7cbMKe2GDRpnz7" target="_blank">Google Maps</a><br><a href="https://www.alltrails.com/trail/canada/quebec/boucle-du-parc-de-la-riviere-batiscan?u=m&sh=aaprbj" target="_blank">All trails</a>').addTo(hikeVisitedMarkers);
+        L.marker([46.5924322983858, -72.598748433046055], { icon: hikeVisitedIcon }).bindPopup('<a href="https://www.saint-narcisse.com/loisirs-et-culture/loisirs-et-culture/" target="_blank">Parc Coeur Nature tourbière de Saint-Narcisse</a><br><a href="https://maps.app.goo.gl/7kdrEFXtquevTDQB8" target="_blank">Google Maps</a><br><a href="https://www.alltrails.com/trail/canada/quebec/sentier-de-la-tourbiere-de-saint-narcisse?u=m&sh=aaprbj" target="_blank">All trails</a>').addTo(hikeVisitedMarkers);
+        L.marker([46.62962002472819, -72.65967851825762], { icon: hikeVisitedIcon }).bindPopup('Parc de la rivière noire<br><a href="https://maps.app.goo.gl/QmYNJkgaUgV82Xyr6" target="_blank">Google Maps</a>').addTo(hikeVisitedMarkers);
+        L.marker([46.563844263331056, -72.75345526758319], { icon: hikeVisitedIcon }).bindPopup('Cegep de Shawi<br><a href="https://maps.app.goo.gl/ANYfmYCBL8aZMKBR6" target="_blank">Google Maps</a>').addTo(hikeVisitedMarkers);
+        L.marker([46.75640881337146, -72.79588977493947], { icon: hikeVisitedIcon }).bindPopup('<a href="https://parcs.canada.ca/pn-np/qc/mauricie/activ/sentiers-trails?_gl=1*tr2ums*_ga*MTA4MjMyNTY2LjE3MTAxOTY5MTY.*_ga_PC690N3X7Z*MTcxODk3NjUwOC40LjEuMTcxODk3ODE4MC4wLjAuMA..&_ga=2.124591822.579537104.1718927578-108232566.1710196916#ete-mekinac" target="_blank">Parc National [Mekinac] ($) </a><br><a href="https://maps.app.goo.gl/hAY5tqrTdxUYJuCQ9" target="_blank">Google Maps</a><br><a href="https://www.alltrails.com/trail/canada/quebec/grande-boucle-du-sentier-mekinac" target="_blank">All trails</a>').addTo(hikeVisitedMarkers);
+        L.marker([46.54677059574047, -72.76095395416735], { icon: hikeVisitedIcon }).bindPopup('Ruine graffiti Shawi<br><a href="https://maps.app.goo.gl/p7UH9FzimsdaQfMT6" target="_blank">Google Maps</a>').addTo(hikeVisitedMarkers);
+        L.marker([46.26611624919324, -72.8093159700436], { icon: hikeVisitedIcon }).bindPopup('Pointe Yamachiche</a><br><a href="https://maps.app.goo.gl/XYQXekJJkQUTY63W8" target="_blank">Google Maps</a><br><a href="https://www.alltrails.com/trail/canada/quebec/pointe-de-yamachiche" target="_blank">All trails</a>').addTo(hikeVisitedMarkers);
+        L.marker([46.38958933806396, -72.52529331251263], { icon: hikeVisitedIcon }).bindPopup('Marmen</a><br><a href="https://maps.app.goo.gl/JdsZcvHccCVcNvmG7" target="_blank">Google Maps</a><br><a href="https://www.alltrails.com/trail/canada/quebec/sentier-chateaudun?u=m&sh=aaprbj" target="_blank">All trails</a>').addTo(hikeVisitedMarkers);
+        L.marker([46.31017617929766, -73.08517495492279], { icon: hikeVisitedIcon }).bindPopup('<a href="https://tourismemauricie.com/repertoire/parc-des-chutes-de-sainte-ursule" target="_blank">Chute Saint-Ursule ($)</a><br><a href="https://maps.app.goo.gl/ACPu2JYA5R8HDohQ9" target="_blank">Google Maps</a><br><a href="https://www.alltrails.com/trail/canada/quebec/chute-sainte-ursule?u=m&sh=aaprbj" target="_blank">All trails</a>').addTo(hikeVisitedMarkers);
+        L.marker([46.22510380843692, -72.92426152371449], { icon: hikeVisitedIcon }).bindPopup('<a href="https://tourismemaskinonge.com/attraits/passerelles-lac-saint-pierre/" target="_blank">Passerelle Pointe-à-Caron</a><br><a href="https://maps.app.goo.gl/vFGHvKUEAh1ACVb69" target="_blank">Google Maps</a><br><a href="https://www.alltrails.com/fr/randonnee/canada/quebec/passerelle-de-louiseville" target="_blank">All trails</a>').addTo(hikeVisitedMarkers);
+        L.marker([46.25169748556664, -72.63933642961773], { icon: hikeVisitedIcon }).bindPopup('<a href="https://www.horssentiers.ca/index.php/activites/details-activite?ev=590" target="_blank">Passerelle Anse-du-Port</a><br><a href="https://maps.app.goo.gl/us35yvHc7VYE3wWR8" target="_blank">Google Maps</a><br><a href="https://www.alltrails.com/fr/randonnee/canada/quebec/parc-de-l-anse-du-port--4?u=m&sh=aaprbj" target="_blank">All trails</a>').addTo(hikeVisitedMarkers);
+        L.marker([47.87680308367956, -70.48133184688781], { icon: hikeVisitedIcon }).bindPopup('<a href="https://www.sepaq.com/pq/hgo/annexes/acropole-draveurs-renseignements-importants.dot" target="_blank">Agropole-Des-Draveurs ($)</a><br><a href="https://maps.app.goo.gl/wjJzzRPLrSzhGUqW8" target="_blank">Google Maps</a><br><a href="https://www.alltrails.com/fr/randonnee/canada/quebec/acropole-des-draveurs" target="_blank">All trails</a>').addTo(hikeVisitedMarkers);
+        L.marker([46.71120601589414, -72.07816424287944], { icon: hikeVisitedIcon }).bindPopup('<a href="https://parcportneuf.com/randonnees-pedestres/" target="_blank">Secteur des gorges de la rivière Ste-Anne</a><br><a href="https://maps.app.goo.gl/daTCLs58ijWTVshB8" target="_blank">Google Maps</a><br><a href="https://www.alltrails.com/fr/randonnee/canada/quebec/gorge-de-la-riviere-sainte-anne" target="_blank">All trails</a>').addTo(hikeVisitedMarkers);
+        L.marker([47.665703069793814, -70.62748586910972], { icon: hikeVisitedIcon }).bindPopup('<a href="https://www.sepaq.com/pq/grj/annexes/sentiers_pedestres.dot" target="_blank">Mont-du-lac-des-Cygnes [Boucle Pioui] ($)</a><br><a href="https://maps.app.goo.gl/exfy4KwiWuTJ6mH58" target="_blank">Google Maps</a><br><a href="https://www.alltrails.com/trail/canada/quebec/le-pioui-and-mont-du-lac-des-cygnes-loop" target="_blank">All trails</a>').addTo(hikeVisitedMarkers);
+        L.marker([47.11886593741559, -71.35919329408483], { icon: hikeVisitedIcon }).bindPopup('<a href="https://www.sepaq.com/pq/jac/annexes/sentiers_pedestres.dot?language_id=1" target="_blank">Éperon ($)</a><br><a href="https://maps.app.goo.gl/9zcRWFkU7Nk3xf5XA" target="_blank">Google Maps</a><br><a href="https://www.alltrails.com/trail/canada/quebec/leperon" target="_blank">All trails</a>').addTo(hikeVisitedMarkers);
+        L.marker([46.57247392511248, -72.71737601990296], { icon: hikeVisitedIcon }).bindPopup('Biermans</a><br><a href="https://maps.app.goo.gl/4A8QCJcm6dbLiFBV8" target="_blank">Google Maps</a><br><a href="https://www.alltrails.com/trail/canada/quebec/boucle-de-la-plage-sentier-hydro-quebec?u=m&sh=aaprbj" target="_blank">All trails</a>').addTo(hikeVisitedMarkers);
+
+        //HIKE pas fait
+        L.marker([46.64433394281586, -72.96259887033739], { icon: hikeNotVisitedIcon }).bindPopup('<a href="https://www.saint-mathieu-du-parc.ca/fr/loisirs-et-culture/parc-recreoforestier" target="_blank">Parc récréoforestier </a><br><a href="https://maps.app.goo.gl/aANeHcifCcXuesLJ7" target="_blank">Google Maps</a><br><a href="https://www.alltrails.com/trail/canada/quebec/boucle-de-la-chute-du-diable?u=m&sh=aaprbj" target="_blank">All trails</a>').addTo(hikeNotVisitedMarkers);
+        L.marker([46.75653524220332, -72.81152424693641], { icon: hikeNotVisitedIcon }).bindPopup('<a href="https://parcs.canada.ca/pn-np/qc/mauricie/activ/sentiers-trails?_gl=1*pdu0e0*_ga*MTA4MjMyNTY2LjE3MTAxOTY5MTY.*_ga_PC690N3X7Z*MTcxODk3NjUwOC40LjEuMTcxODk3NjUzMC4wLjAuMA..&_ga=2.124533838.579537104.1718927578-108232566.1710196916#ete-deux-criques" target="_blank">Parc National [Deux-Criques] ($) </a><br><a href="https://maps.app.goo.gl/siFFS3nxmA2NCdqq8" target="_blank">Google Maps</a><br><a href="https://www.alltrails.com/trail/canada/quebec/deux-criques-trail?u=m&sh=aaprbj" target="_blank">All trails</a>').addTo(hikeNotVisitedMarkers);
+        L.marker([46.7270296451856, -72.75683717458122], { icon: hikeNotVisitedIcon }).bindPopup('Sentier National Père Jacques-Buteux </a><br><a href="https://maps.app.goo.gl/X3KpeLKdzWPvU3Q29" target="_blank">Google Maps</a><br><a href="https://www.alltrails.com/trail/canada/quebec/sentier-de-la-tourbiere-de-saint-narcisse?u=m&sh=aaprbj" target="_blank">All trails</a>').addTo(hikeNotVisitedMarkers);
+        L.marker([46.35035942209288, -72.2031704807997], { icon: hikeNotVisitedIcon }).bindPopup('La tourbière </a><br><a href="https://maps.app.goo.gl/R42879wnpj4nyp8v8" target="_blank">Google Maps').addTo(hikeNotVisitedMarkers);
+        L.marker([46.42434, -72.97001], { icon: hikeNotVisitedIcon }).bindPopup('Chutes du Loup </a><br><a href="https://maps.app.goo.gl/eN99ccC1LQPhqxsp9" target="_blank">Google Maps</a><br><a href="https://www.alltrails.com/fr/explore/trail/canada/quebec/chutes-du-loup?mobileMap=false&ref=sidebar-static-map" target="_blank">All trails</a>').addTo(hikeNotVisitedMarkers);
+
+        //MTB fait
+        L.marker([46.32290825124567, -72.62588113030714], { icon: mtbVisitedIcon }).bindPopup('<a href="https://energiecmb.com/" target="_blank">Énergie CMB ($) </a><br><a href="https://maps.app.goo.gl/GJ8uCAmSs2R1wW2f6" target="_blank">Google Maps</a><br><a href="https://www.trailforks.com/region/energie-cmb/" target="_blank">Trailforks</a>').addTo(mtbVisitedMarkers);
+        L.marker([46.62982673516706, -72.65938978424892], { icon: mtbVisitedIcon }).bindPopup('Parc de la rivière noire<br><a href="https://maps.app.goo.gl/QmYNJkgaUgV82Xyr6" target="_blank">Google Maps</a>').addTo(mtbVisitedMarkers);
+        L.marker([46.605978108088394, -72.69288574811367], { icon: mtbVisitedIcon }).bindPopup('Bionest<br><a href="https://maps.app.goo.gl/SXVrSCHHJoL3NfEf7" target="_blank">Google Maps</a>').addTo(mtbVisitedMarkers);
+        L.marker([46.59724700163809, -72.83965233775226], { icon: mtbVisitedIcon }).bindPopup('<a href="https://www.montsm.com/" target="_blank">Mont SM ($) </a><br><a href="https://maps.app.goo.gl/E81xGbpq6hr2Ayr99" target="_blank">Google Maps</a><br><a href="https://www.trailforks.com/region/mont-sm-21402/" target="_blank">Trailforks</a>').addTo(mtbVisitedMarkers);
+        L.marker([46.644247707814024, -72.96217416807167], { icon: mtbVisitedIcon }).bindPopup('<a href="https://www.saint-mathieu-du-parc.ca/fr/loisirs-et-culture/parc-recreoforestier" target="_blank">Parc récréoforestier </a><br><a href="https://maps.app.goo.gl/aANeHcifCcXuesLJ7" target="_blank">Google Maps</a><br><a href="https://www.trailforks.com/region/parc-recreoforestier-stmathieu/" target="_blank">Trailforks</a>').addTo(mtbVisitedMarkers);
+        L.marker([46.97194941826511, -71.40273963597951], { icon: mtbVisitedIcon }).bindPopup('<a href="https://www.empire47.com/" target="_blank">Empire 47 ($) </a><br><a href="https://maps.app.goo.gl/G2irx8uwxq1ETJzV7" target="_blank">Google Maps</a><br><a href="https://www.trailforks.com/region/e47-empire-47/" target="_blank">Trailforks</a>').addTo(mtbVisitedMarkers);
+        L.marker([46.54580325250173, -72.75932086844469], { icon: mtbVisitedIcon }).bindPopup('Piste Shawinigan cachée<br><a href="https://maps.app.goo.gl/p7UH9FzimsdaQfMT6" target="_blank">Google Maps</a>').addTo(mtbVisitedMarkers);
+        L.marker([46.7571095880202, -71.8295618614049], { icon: mtbVisitedIcon }).bindPopup('<a href="https://tourisme.portneuf.com/membres/centre-nature-saint-basile" target="_blank">Centre nature St-Basile de Portneuf ($)</a><br><a href="https://maps.app.goo.gl/WQPnW89h8JTA3TtL8" target="_blank">Google Maps</a><br><a href="https://www.trailforks.com/region/centre-nature-saintbasile-15655/" target="_blank">Trailforks</a>').addTo(mtbVisitedMarkers);
+        L.marker([45.95352490592709, -72.530619413532439], { icon: mtbVisitedIcon }).bindPopup('<a href="https://www.mrcdrummond.qc.ca/parc-regional-velo-montagne/" target="_blank">Parc régional de la Forêt Drummond</a><br><a href="https://maps.app.goo.gl/V45yeSML6dHNo6A87" target="_blank">Google Maps</a><br><a href="https://www.trailforks.com/region/parc-regional-de-la-foret-drummond/" target="_blank">Trailforks</a>').addTo(mtbVisitedMarkers);
+
+        //MTB pas fait
+        L.marker([46.545302313102475, -72.39698868719655], { icon: mtbNotVisitedIcon }).bindPopup('<a href="https://parcbatiscan.ca/activites/activites-autonomes/" target="_blank">Parc de la rivière batiscan ($) </a><br><a href="https://maps.app.goo.gl/VnE7cbMKe2GDRpnz7" target="_blank">Google Maps</a><br><a href="https://www.trailforks.com/region/parc-de-la-riviere-batiscan/" target="_blank">Trailforks</a>').addTo(mtbNotVisitedMarkers);
+        L.marker([47.074953511311996, -71.89006444192562], { icon: mtbNotVisitedIcon }).bindPopup('<a href="https://valleebrasdunord.com/carte-sentiers-velo/" target="_blank">Vallée du bras du nord [Secteur Shannahan] ($) </a><br><a href="https://maps.app.goo.gl/2xWfgK9LdjAPMBJU7" target="_blank">Google Maps</a><br><a href="https://www.trailforks.com/region/vbn-secteur-shannahan/" target="_blank">Trailforks</a>').addTo(mtbNotVisitedMarkers);
+        L.marker([46.90029514463949, -71.81453418238267], { icon: mtbNotVisitedIcon }).bindPopup('<a href="https://valleebrasdunord.com/carte-sentiers-velo/" target="_blank">Vallée du bras du nord [Secteur Saint-Raymond] ($) </a><br><a href="https://maps.app.goo.gl/rsH5kH4pV57CaKu19" target="_blank">Google Maps</a><br><a href="https://www.trailforks.com/region/vbn-secteur-saintraymond/" target="_blank">Trailforks</a>').addTo(mtbNotVisitedMarkers);
+        L.marker([46.33490160393482, -72.23806293567259], { icon: mtbNotVisitedIcon }).bindPopup('<a href="https://rivieregentilly.com/activite/velo-de-montagne/" target="_blank">Parc régional de la rivière Gentilly ($) </a><br><a href="https://maps.app.goo.gl/LJMmHNbq597NyCsU8" target="_blank">Google Maps</a><br><a href="https://www.trailforks.com/region/parc-regional-de-la-riviere-gentilly/" target="_blank">Trailforks</a>').addTo(mtbNotVisitedMarkers);
+        L.marker([46.98378582673956, -71.26947180376376], { icon: mtbNotVisitedIcon }).bindPopup('<a href="https://www.sentiersdumoulin.com/" target="_blank">Sentier du moulin ($) </a><br><a href="https://maps.app.goo.gl/4ban6FJG3uCj6qBR8" target="_blank">Google Maps</a><br><a href="https://www.trailforks.com/region/sentiers-du-moulin/" target="_blank">Trailforks</a>').addTo(mtbNotVisitedMarkers);
+        L.marker([46.52769925539041, -72.76282182284835], { icon: mtbNotVisitedIcon }).bindPopup('Sentier du parc de Île Merlville [secteur des chutes]<br><a href="https://maps.app.goo.gl/sfd87giStj2GnrJt5" target="_blank">Google Maps</a><br><a href="https://www.trailforks.com/region/parc-de-l-ile-melville-secteur-des-chutes-39404/?activitytype=1&z=14.2&lat=46.52601&lon=-72.76422&content=trails,labels,nst,region,poi,directory,polygon,waypoint,routes_featured" target="_blank">Trailforks</a>').addTo(mtbNotVisitedMarkers);
+        L.marker([46.7132755719555, -71.88739314704394], { icon: mtbNotVisitedIcon }).bindPopup('<a href="https://villedeportneuf.com/fr/loisirs-culture-et-vie-communautaire/plein-air/sentiers-recreatifs-portneuf" target="_blank">Sentiers récréatifs Portneuf ($) </a><br><a href="https://maps.app.goo.gl/urPTpe88qJLmxN6F7" target="_blank">Google Maps</a><br><a href="https://www.trailforks.com/region/sentiers-recreatifs-portneuf/" target="_blank">Trailforks</a>').addTo(mtbNotVisitedMarkers);
+
+        //Kayak fait
+        L.marker([46.777403, -72.887266], { icon: kayakVisitedIcon }).bindPopup('<a href="https://fr.wikipedia.org/wiki/Lac_du_Fou" target="_blank">Lac du Fou - Parc National ($) </a><br><a href="https://maps.app.goo.gl/fV5WyaDdRFfMpsmy6"target="_blank">Google Maps</a>').addTo(kayakVisitedMarkers)
+        L.marker([46.7234261512076, -73.05798790884023], { icon: kayakVisitedIcon }).bindPopup('<a href="https://parcs.canada.ca/pn-np/qc/mauricie/activ/camping/canot-camping-canoe/guide/facile-et-intermediaire-avec-portage-easy-and-moderate-with-portage-lac-du-caribou" target="_blank">Lac du Caribou - Parc National ($) </a><br><a href="https://maps.app.goo.gl/pUjdsVXyyVBJQ3wZ6"target="_blank">Google Maps</a>').addTo(kayakVisitedMarkers)
+        L.marker([46.76659795667581, -73.13552887041419], { icon: kayakVisitedIcon }).bindPopup('<a href="https://parks.canada.ca/pn-np/qc/mauricie/activ/nautique-nautical/waber" target="_blank">Chute Weber - Parc National ($) </a><br><a href="https://maps.app.goo.gl/jedJB18572z5KPFD9"target="_blank">Google Maps</a>').addTo(kayakVisitedMarkers)
+        L.marker([46.7578990004696, -72.98088428368558], { icon: kayakVisitedIcon }).bindPopup('<a href="https://fr.wikipedia.org/wiki/Lac_%C3%89cart%C3%A9_(Shawinigan)" target="_blank">Lac Écarté - Parc National ($) </a><br><a href="https://maps.app.goo.gl/pvc4MbkVKjxWW1TJ9"target="_blank">Google Maps</a>').addTo(kayakVisitedMarkers)
+        L.marker([46.52866347568326, -72.78180327653551], { icon: kayakVisitedIcon }).bindPopup('Baie de Shawinigan<br><a href="https://maps.app.goo.gl/aEb7xYbBPRAGRLL56"target="_blank">Google Maps</a>').addTo(kayakVisitedMarkers)
+        
+        //Kayak pas fait
+        L.marker([46.65966025176717, -73.01269088507348], { icon: kayakNotVisitedIcon }).bindPopup('Esker - Parc National ($) </a><br><a href="https://maps.app.goo.gl/H99tzRWBUCPXdBib6"target="_blank">Google Maps</a>').addTo(kayakNotVisitedMarkers)
+        L.marker([46.766568736649134, -72.91865873412964], { icon: kayakNotVisitedIcon }).bindPopup('<a href="https://parcs.canada.ca/pn-np/qc/mauricie/activ/camping/canot-camping-canoe/guide/facile-sans-portage-easy-without-portage-edouard" target="_blank">Lac Édouard - Parc National ($) </a><br><a href="https://maps.app.goo.gl/zwoRpuMYXPhJBGya6"target="_blank">Google Maps</a>').addTo(kayakNotVisitedMarkers)
+
+        //Ajout des groupes à la carte
+        hikeVisitedMarkers.addTo(map);
+        hikeNotVisitedMarkers.addTo(map);
+        mtbVisitedMarkers.addTo(map);
+        mtbNotVisitedMarkers.addTo(map);
+        kayakVisitedMarkers.addTo(map);
+        kayakNotVisitedMarkers.addTo(map);
+
+        // Permet de définir un nom pour modifier l'icon en CSS
+        const userPositionIcon = L.divIcon({
+            className: 'position-de-lUsager',
+            iconSize: [25, 25],
+            iconAnchor: [12.5, 25], //Pour mettre la position au bas de l'icon
+            popupAnchor: [3, -25] //Pour mettre la position du pop up plus haut
+        });
+
+        // permet de voir si le navigateur peux montrer la position et permet de pouvoir l'afficher
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(montrerPosition);
+        } else {
+            alert('Non disponible');
+        }
+
+        // Permet de voir la position de l'utilisateur
+        function montrerPosition(position) {
+            L.marker([position.coords.latitude, position.coords.longitude], { icon: userPositionIcon }).addTo(map).bindPopup("Votre position").openPopup();
+            L.circle([position.coords.latitude, position.coords.longitude], { radius: position.coords.accuracy }).addTo(map);
+            map.flyTo([position.coords.latitude, position.coords.longitude], 12);
+        }
+
+        //code pour faire la sélection d'activité
+        const requeteActivité = document.getElementById("Activité");
+        function Isole() {
+
+         //permet de toute enlever les marqueurs de la carte
+            map.eachLayer(function (layer) {
+                if (layer instanceof L.LayerGroup) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            //pour mettre les marqueurs selon les requètes
+            const activité = requeteActivité.value;
+            const lieu = document.getElementById("Lieu").value;
+            if (activité == "Hike" || activité == "All") {
+                if (lieu == "visited" || lieu == "all") {
+                    map.addLayer(hikeVisitedMarkers);
+                }
+                if (lieu == "notVisited" || lieu == "all") {
+                    map.addLayer(hikeNotVisitedMarkers);
+                }
+            }
+            if (activité == "MTB" || activité == "All") {
+                if (lieu == "visited" || lieu == "all") {
+                    map.addLayer(mtbVisitedMarkers);
+                }
+                if (lieu == "notVisited" || lieu == "all") {
+                    map.addLayer(mtbNotVisitedMarkers);
+                }
+            }
+            if (activité == "Kayak" || activité == "All") {
+                if (lieu == "visited" || lieu == "all") {
+                    map.addLayer(kayakVisitedMarkers);
+                }
+                if (lieu == "notVisited" || lieu == "all") {
+                    map.addLayer(kayakNotVisitedMarkers);
+                }
+            }
+        }
+        //pour ajouter le bouton maison
+        L.easyButton('fa-street-view', function (btn, map) {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    map.flyTo([position.coords.latitude, position.coords.longitude], 12);
+                });
+            } else {
+                alert('Non disponible');
+            }
+        }).addTo(map);
+
+        //pour avoir l'echelle
+        L.control.scale({ metric: true, imperial: false, maxWidth: 300 }).addTo(map);
+    </script>
+
+    </body>
+
+</html>
