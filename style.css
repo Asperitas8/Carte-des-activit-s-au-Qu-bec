@@ -4,6 +4,34 @@ body {
   padding: 0;
 }
 
+/* Styles pour les petits écrans */
+@media (max-width: 600px) {
+  #carte {
+    height: 60vh;
+  }
+
+  #requete, #titreCarte, #nom {
+    font-size: 14px;
+    text-align: center;
+    margin: 10px;
+  }
+
+  #requete select {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  #titreCarte {
+    font-size: 18px;
+    margin-top: 20px;
+  }
+
+  #nom {
+    font-size: 12px;
+    position: static;
+  }
+}
+
 /* Styles pour la carte */
 #carte {
   position: absolute;
