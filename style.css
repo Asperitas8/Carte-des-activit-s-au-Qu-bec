@@ -4,30 +4,30 @@ body {
   padding: 0;
 }
 
-/* Styles pour les petits écrans */
+/* Styles pour les téléphones */
 @media (max-width: 600px) {
   #carte {
     height: 60vh;
   }
 
   #requete, #titreCarte, #nom {
-    font-size: 14px;
+    font-size: 2px;
     text-align: center;
-    margin: 10px;
+    margin: 1px;
   }
 
   #requete select {
-    width: 100%;
-    margin-bottom: 10px;
+    width: 30%;
+    margin-bottom: 3px;
   }
 
   #titreCarte {
-    font-size: 18px;
-    margin-top: 20px;
+    font-size: 10px;
+    margin-top: 2px;
   }
 
   #nom {
-    font-size: 12px;
+    font-size: 2px;
     position: static;
   }
 }
