@@ -6,28 +6,24 @@ body {
 
 /* Styles pour les téléphones */
 @media (max-width: 600px) {
-  #carte {
-    height: 60vh;
-  }
-
   #requete, #titreCarte, #nom {
-    font-size: 2px;
+    font-size: 5%;
     text-align: center;
-    margin: 1px;
+    margin: 1%;
   }
 
   #requete select {
     width: 30%;
-    margin-bottom: 3px;
+    margin-bottom: 3%;
   }
 
   #titreCarte {
-    font-size: 10px;
-    margin-top: 2px;
+    font-size: 10%;
+    margin-top: 1%;
   }
 
   #nom {
-    font-size: 2px;
+    font-size: 2%;
     position: static;
   }
 }
