@@ -5,9 +5,14 @@ body {
 }
 
 /* Styles pour les petits écrans */
-@media (max-width: 2000px) {
+@media (max-width: 600px) {
+  #carte {
+    height: 100vh; /* Utilise toute la hauteur de l'écran */
+    width: 100vw; /* Utilise toute la largeur de l'écran */
+  }
+
   #requete, #titreCarte, #nom, .leaflet-control-layers {
-    font-size: 4px;
+    font-size: 8px;
     text-align: center;
     margin: 2px;
     padding: 2px;
@@ -15,26 +20,26 @@ body {
   }
 
   #requete select, .leaflet-control-layers-base, .leaflet-control-layers-separator, .leaflet-control-layers-overlays {
-    width: 20%;
-    margin-bottom: 1px;
+    width: 100%; /* Prend toute la largeur disponible */
+    margin-bottom: 5px;
   }
 
   #titreCarte {
-    font-size: 8px;
-    margin-top: 2px;
+    font-size: 10px;
+    margin-top: 5px;
   }
 
   #nom {
-    font-size: 2px;
+    font-size: 8px;
     position: static;
-    margin-top: 2px;
+    margin-top: 5px;
   }
 
   .leaflet-control-layers {
     background: white;
-    padding: 2px;
-    border-radius: 2px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    padding: 5px;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
   }
 }
 
