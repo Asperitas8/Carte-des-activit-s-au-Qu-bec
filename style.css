@@ -12,7 +12,7 @@ body {
   }
 
   #requete, #titreCarte, .leaflet-control-layers {
-    font-size: 10px;
+    font-size: 1px; /* Réduit la taille de la police */
     text-align: center;
     margin: 0px;
     padding: 0px;
@@ -20,20 +20,20 @@ body {
   }
 
   #requete select, .leaflet-control-layers-base, .leaflet-control-layers-separator, .leaflet-control-layers-overlays {
-    width: 100%; /* Prend toute la largeur disponible */
-    margin-bottom: 2px;
+    width: 30%; /* Prend toute la largeur disponible */
+    margin-bottom: 0px;
   }
 
   #titreCarte {
-    font-size: 12px;
-    margin-top: 2px;
+    font-size: 2px; /* Réduit encore plus la taille de la police du titre */
+    margin-top: 0px;
   }
 
   .leaflet-control-layers {
     background: white;
-    padding: 3px;
-    border-radius: 3px;
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+    padding: 0px;
+    border-radius: 1px;
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.3);
   }
 }
 
