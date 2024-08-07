@@ -14,6 +14,7 @@ body {
   #requete {
     font-size: 10px;
     text-align: center;
+    margin: 10px 0; /* Ajouter de la marge en haut et en bas */
     padding: 5px;
     width: 100%; /* Prend toute la largeur disponible */
     position: absolute;
@@ -22,35 +23,8 @@ body {
     right: 0;
   }
 
-  #titreCarte {
-    font-size: 14px; /* Taille de la police du titre */
-    margin-top: 10px;
-    text-align: center;
-  }
-
-  #nom {
-    font-size: 10px;
-    position: static;
-    margin-top: 5px;
-    text-align: center;
-  }
-
-  .leaflet-control-layers {
-    font-size: 10px; /* Réduit la taille de la police */
-    background: white;
-    padding: 5px;
-    border-radius: 3px;
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
-    position: absolute;
-    top: auto; /* Désactive la position par défaut en haut */
-    bottom: 60px; /* Positionne la légende en bas */
-    left: 10px; /* Décale légèrement la légende vers la gauche */
-    width: auto;
-  }
-
-  .leaflet-control-layers-base, .leaflet-control-layers-separator, .leaflet-control-layers-overlays {
-    width: 30%;
-    margin-bottom: 5px;
+  #titreCarte, #nom, .leaflet-control-layers {
+    display: none; /* Cache le titre, le nom et la légende */
   }
 }
 
