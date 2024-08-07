@@ -16,14 +16,16 @@ body {
     text-align: center;
     margin: 10px 0; /* Ajouter de la marge en haut et en bas */
     padding: 5px;
-    width: 80%; /* Prend toute la largeur disponible */
+    width: 90%; /* Prend 90% de la largeur disponible */
     position: absolute;
     bottom: 20px; /* Positionne la sélection en bas */
-    left: 10%; /* Centrer la sélection */
-    right: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.8); /* Ajouter un fond blanc semi-transparent */
+    border-radius: 5px; /* Coins arrondis */
   }
 
-  #titreCarte, #nom, .leaflet-control-layers {
+  #titreCarte, #nom, #legend {
     display: none; /* Cache le titre, le nom et la légende */
   }
 }
