@@ -5,7 +5,7 @@ body {
 }
 
 /* Styles pour les petits écrans */
-@media (max-width: 600px) {
+@media (max-width: 2000px) {
   #carte {
     height: calc(100vh - 60px); /* Utilise presque toute la hauteur de l'écran */
     width: 100vw; /* Utilise toute la largeur de l'écran */
@@ -26,6 +26,18 @@ body {
   #titreCarte, #nom, .leaflet-control-layers {
     display: none; /* Cache le titre, le nom et la légende */
   }
+}
+
+/* Styles pour la carte */
+#carte {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  color: #323232;
 }
 
 /* Styles pour la carte */
