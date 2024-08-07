@@ -11,12 +11,13 @@ body {
     width: 100vw; /* Utilise toute la largeur de l'écran */
   }
 
-  #requete {
+ #requete {
     font-size: 10px;
     text-align: center;
-    width: 50%; /* Prend 90% de la largeur disponible */
+    width: 70%; 
     position: absolute;
     border-radius: 5px; /* Coins arrondis */
+    top: 200px;
   }
 
   #titreCarte, #nom, #legend {
