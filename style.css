@@ -16,11 +16,11 @@ body {
     text-align: center;
     margin: 10px 0; /* Ajouter de la marge en haut et en bas */
     padding: 5px;
-    width: 100%; /* Prend toute la largeur disponible */
+    width: 80%; /* Prend toute la largeur disponible */
     position: absolute;
     bottom: 20px; /* Positionne la sélection en bas */
-    left: 0;
-    right: 0;
+    left: 10%; /* Centrer la sélection */
+    right: 10%;
   }
 
   #titreCarte, #nom, .leaflet-control-layers {
