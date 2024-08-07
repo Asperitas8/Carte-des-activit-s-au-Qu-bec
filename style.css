@@ -4,27 +4,41 @@ body {
   padding: 0;
 }
 
-/* Styles pour les téléphones */
+/* Styles pour les petits écrans */
 @media (max-width: 600px) {
-  #requete, #titreCarte, #nom {
-    font-size: 5%;
-    text-align: center;
-    margin: 1%;
+  #carte {
+    height: 50vh;
   }
 
-  #requete select {
-    width: 30%;
-    margin-bottom: 3%;
+  #requete, #titreCarte, #nom, .leaflet-control-layers {
+    font-size: 12px;
+    text-align: center;
+    margin: 5px;
+    padding: 5px;
+    width: auto;
+  }
+
+  #requete select, .leaflet-control-layers-base, .leaflet-control-layers-separator, .leaflet-control-layers-overlays {
+    width: 100%;
+    margin-bottom: 5px;
   }
 
   #titreCarte {
-    font-size: 10%;
-    margin-top: 1%;
+    font-size: 16px;
+    margin-top: 10px;
   }
 
   #nom {
-    font-size: 2%;
+    font-size: 10px;
     position: static;
+    margin-top: 10px;
+  }
+
+  .leaflet-control-layers {
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   }
 }
 
