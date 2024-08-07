@@ -14,7 +14,6 @@ body {
   #requete {
     font-size: 10px;
     text-align: center;
-    margin: 10px 0; /* Ajouter de la marge en haut et en bas */
     padding: 5px;
     width: 100%; /* Prend toute la largeur disponible */
     position: absolute;
@@ -50,7 +49,7 @@ body {
   }
 
   .leaflet-control-layers-base, .leaflet-control-layers-separator, .leaflet-control-layers-overlays {
-    width: 100%; /* Prend toute la largeur disponible */
+    width: 30%;
     margin-bottom: 5px;
   }
 }
